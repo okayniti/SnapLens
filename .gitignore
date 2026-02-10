@@ -1,0 +1,22 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Uploaded screenshots (user data, not for Git)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Environment variables (API keys go here later)
+.env
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+.DS_Store
