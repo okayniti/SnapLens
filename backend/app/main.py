@@ -14,6 +14,9 @@ from datetime import datetime
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 
+# Import our OCR module (the first piece of the AI pipeline!)
+from backend.app.ocr import extract_text
+
 # Create the FastAPI app instance
 app = FastAPI(
     title="SnapLens API",
@@ -84,9 +87,8 @@ async def upload_screenshot(file: UploadFile = File(...)):
     1. Validates the file is an allowed image type
     2. Checks the file size is within limits
     3. Saves it with a unique filename to /uploads
-    4. Returns the filename and path for the next pipeline step
-
-    Later, this will trigger: OCR → Intent Classification → Action Suggestion
+    4. Runs OCR to extract text from the image
+    5. Returns the extracted text (intent classification coming next!)
     """
 
     # Step 1: Validate file extension
@@ -109,11 +111,15 @@ async def upload_screenshot(file: UploadFile = File(...)):
     with open(file_path, "wb") as f:
         f.write(contents)
 
-    # Step 4: Return confirmation
-    # This response will grow as we add OCR and intent detection
+    # Step 4: Run OCR to extract text from the screenshot
+    # This is the first step of our AI pipeline!
+    extracted_text = extract_text(file_path)
+
+    # Step 5: Return the upload confirmation + extracted text
     return {
         "status": "success",
         "filename": unique_name,
         "size_mb": round(file_size_mb, 2),
-        "message": "Screenshot uploaded successfully. AI analysis coming soon!",
+        "extracted_text": extracted_text,
+        "message": "Screenshot processed! Text extracted via OCR.",
     }
