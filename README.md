@@ -4,7 +4,7 @@
 
 > Built with FastAPI + Tesseract OCR + LLM Intent Classification
 
-## Status: 🚧 In Development
+## Status: 🚧 In Development (Phase 1 Complete)
 
 ---
 
@@ -16,6 +16,14 @@ People take screenshots of assignments, payments, notes, and links — but they 
 2. **Understand** why you saved it (LLM intent detection)
 3. **Suggest** a meaningful action
 4. **Store** it as structured memory (task / note / reminder / expense / link)
+
+## Current Features
+
+- ✅ FastAPI backend with health check
+- ✅ Screenshot upload endpoint with validation (file type + size limit)
+- 🔜 OCR text extraction
+- 🔜 AI intent classification
+- 🔜 Dashboard UI
 
 ## Tech Stack
 
