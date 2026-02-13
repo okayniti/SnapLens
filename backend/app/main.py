@@ -14,8 +14,9 @@ from datetime import datetime
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 
-# Import our OCR module (the first piece of the AI pipeline!)
+# Import our AI pipeline modules
 from backend.app.ocr import extract_text
+from backend.app.intent import classify_intent
 
 # Create the FastAPI app instance
 app = FastAPI(
@@ -88,7 +89,8 @@ async def upload_screenshot(file: UploadFile = File(...)):
     2. Checks the file size is within limits
     3. Saves it with a unique filename to /uploads
     4. Runs OCR to extract text from the image
-    5. Returns the extracted text (intent classification coming next!)
+    5. Runs LLM intent classification on extracted text
+    6. Returns the full AI analysis
     """
 
     # Step 1: Validate file extension
@@ -112,14 +114,19 @@ async def upload_screenshot(file: UploadFile = File(...)):
         f.write(contents)
 
     # Step 4: Run OCR to extract text from the screenshot
-    # This is the first step of our AI pipeline!
     extracted_text = extract_text(file_path)
 
-    # Step 5: Return the upload confirmation + extracted text
+    # Step 5: Run LLM intent classification on the extracted text
+    # This is the AI brain — it understands WHY the screenshot was saved
+    intent_result = classify_intent(extracted_text)
+
+    # Step 6: Return the full AI analysis
+    # The complete pipeline: Image → OCR → Intent → Response
     return {
         "status": "success",
         "filename": unique_name,
         "size_mb": round(file_size_mb, 2),
         "extracted_text": extracted_text,
-        "message": "Screenshot processed! Text extracted via OCR.",
+        "intent": intent_result,
+        "message": "Screenshot analyzed successfully!",
     }
