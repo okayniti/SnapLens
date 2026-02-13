@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapLens — Screenshot Intelligence</title>
+    <meta name="description" content="Turn forgotten screenshots into actionable tasks, notes, reminders, and structured memory.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f4ff',
+                            100: '#dbe4ff',
+                            200: '#bac8ff',
+                            400: '#748ffc',
+                            500: '#5c7cfa',
+                            600: '#4c6ef5',
+                            700: '#4263eb',
+                            800: '#3b5bdb',
+                            900: '#364fc7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up { animation: fadeInUp 0.5s ease-out; }
+
+        /* Drag-and-drop highlight */
+        .drag-over {
+            border-color: #4c6ef5 !important;
+            background-color: #f0f4ff !important;
+        }
+
+        /* Category badge colors */
+        .badge-task { background: #fff3bf; color: #e67700; }
+        .badge-reminder { background: #d3f9d8; color: #2b8a3e; }
+        .badge-note { background: #dbe4ff; color: #364fc7; }
+        .badge-expense { background: #ffe3e3; color: #c92a2a; }
+        .badge-link { background: #e5dbff; color: #7048e8; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">🧠</span>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">SnapLens</h1>
+                    <p class="text-xs text-gray-500">Screenshots → Actions</p>
+                </div>
+            </div>
+            <a href="/dashboard.html" class="text-sm text-brand-600 hover:text-brand-800 font-medium">
+                📋 Dashboard
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-6 py-10">
+
+        <!-- Upload Section -->
+        <section id="upload-section" class="mb-10">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Upload a Screenshot</h2>
+                <p class="text-gray-500">Drop an image or click to browse. SnapLens will read it and classify it for you.</p>
+            </div>
+
+            <!-- Drop Zone -->
+            <div id="drop-zone"
+                 class="border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center cursor-pointer
+                        hover:border-brand-400 hover:bg-brand-50 transition-all duration-200"
+                 onclick="document.getElementById('file-input').click()">
+                <div id="drop-content">
+                    <span class="text-5xl block mb-4">📸</span>
+                    <p class="text-gray-700 font-medium text-lg">Drag & drop your screenshot here</p>
+                    <p class="text-gray-400 text-sm mt-1">or click to browse • PNG, JPG, WebP • Max 10 MB</p>
+                </div>
+                <!-- Preview (shown after file selected) -->
+                <div id="preview-container" class="hidden">
+                    <img id="image-preview" class="max-h-64 mx-auto rounded-lg shadow-md" alt="Preview">
+                    <p id="file-name" class="text-sm text-gray-500 mt-3"></p>
+                </div>
+            </div>
+
+            <input type="file" id="file-input" accept="image/*" class="hidden">
+
+            <!-- Analyze Button -->
+            <div class="text-center mt-6">
+                <button id="analyze-btn"
+                        onclick="analyzeScreenshot()"
+                        disabled
+                        class="bg-brand-600 text-white px-8 py-3 rounded-xl font-semibold text-lg
+                               hover:bg-brand-700 disabled:bg-gray-300 disabled:cursor-not-allowed
+                               transition-all duration-200 shadow-md hover:shadow-lg">
+                    🔍 Analyze Screenshot
+                </button>
+            </div>
+        </section>
+
+        <!-- Loading Spinner -->
+        <div id="loading" class="hidden text-center py-10">
+            <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-brand-200 border-t-brand-600"></div>
+            <p class="text-gray-500 mt-4">Analyzing your screenshot...</p>
+        </div>
+
+        <!-- Results Section -->
+        <section id="results" class="hidden fade-in-up">
+
+            <!-- Intent Card -->
+            <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-900">🧠 AI Analysis</h3>
+                    <span id="category-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase"></span>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <span class="text-xs text-gray-400 uppercase tracking-wide">Title</span>
+                        <p id="result-title" class="text-gray-900 font-medium"></p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-400 uppercase tracking-wide">Summary</span>
+                        <p id="result-summary" class="text-gray-700"></p>
+                    </div>
+                    <div id="key-detail-row">
+                        <span class="text-xs text-gray-400 uppercase tracking-wide">Key Detail</span>
+                        <p id="result-detail" class="text-brand-700 font-semibold"></p>
+                    </div>
+                    <div class="bg-brand-50 rounded-xl p-4 mt-4">
+                        <span class="text-xs text-brand-500 uppercase tracking-wide">💡 Suggested Action</span>
+                        <p id="result-action" class="text-brand-800 font-medium mt-1"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Extracted Text Card -->
+            <details class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 mb-6">
+                <summary class="cursor-pointer text-lg font-bold text-gray-900">📝 Extracted Text</summary>
+                <pre id="result-text" class="mt-4 bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap overflow-auto max-h-48"></pre>
+            </details>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-3 justify-center">
+                <button onclick="saveItem('task')"
+                        class="bg-yellow-50 text-yellow-700 border border-yellow-200 px-5 py-2.5 rounded-xl font-medium
+                               hover:bg-yellow-100 transition-all">
+                    📌 Save as Task
+                </button>
+                <button onclick="saveItem('note')"
+                        class="bg-blue-50 text-blue-700 border border-blue-200 px-5 py-2.5 rounded-xl font-medium
+                               hover:bg-blue-100 transition-all">
+                    📝 Save as Note
+                </button>
+                <button onclick="saveItem('reminder')"
+                        class="bg-green-50 text-green-700 border border-green-200 px-5 py-2.5 rounded-xl font-medium
+                               hover:bg-green-100 transition-all">
+                    ⏰ Save as Reminder
+                </button>
+                <button onclick="saveItem('expense')"
+                        class="bg-red-50 text-red-700 border border-red-200 px-5 py-2.5 rounded-xl font-medium
+                               hover:bg-red-100 transition-all">
+                    💰 Save as Expense
+                </button>
+                <button onclick="resetUpload()"
+                        class="bg-gray-50 text-gray-500 border border-gray-200 px-5 py-2.5 rounded-xl font-medium
+                               hover:bg-gray-100 transition-all">
+                    ✕ Ignore
+                </button>
+            </div>
+        </section>
+
+        <!-- Save Confirmation Toast -->
+        <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium fade-in-up">
+            ✅ Saved successfully!
+        </div>
+
+    </main>
+
+    <script>
+        // ── State ──────────────────────────────────────
+        let selectedFile = null;
+        let lastResult = null;
+        const API_URL = "http://127.0.0.1:8000";
+
+        // ── File Selection ─────────────────────────────
+        const fileInput = document.getElementById("file-input");
+        const dropZone = document.getElementById("drop-zone");
+
+        fileInput.addEventListener("change", (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Drag and drop handlers
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("drag-over");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("drag-over");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("drag-over");
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            // Validate file type
+            const allowed = ["image/png", "image/jpeg", "image/webp", "image/bmp"];
+            if (!allowed.includes(file.type)) {
+                alert("Please upload an image file (PNG, JPG, WebP, BMP)");
+                return;
+            }
+
+            selectedFile = file;
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById("image-preview").src = e.target.result;
+                document.getElementById("file-name").textContent = file.name + " (" + (file.size / 1024 / 1024).toFixed(2) + " MB)";
+                document.getElementById("drop-content").classList.add("hidden");
+                document.getElementById("preview-container").classList.remove("hidden");
+            };
+            reader.readAsDataURL(file);
+
+            // Enable analyze button
+            document.getElementById("analyze-btn").disabled = false;
+
+            // Hide previous results
+            document.getElementById("results").classList.add("hidden");
+        }
+
+        // ── Analyze Screenshot ─────────────────────────
+        async function analyzeScreenshot() {
+            if (!selectedFile) return;
+
+            // Show loading, hide results
+            document.getElementById("loading").classList.remove("hidden");
+            document.getElementById("results").classList.add("hidden");
+            document.getElementById("analyze-btn").disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append("file", selectedFile);
+
+                const response = await fetch(API_URL + "/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || "Upload failed");
+                }
+
+                const data = await response.json();
+                lastResult = data;
+                displayResults(data);
+
+            } catch (error) {
+                alert("Error: " + error.message);
+            } finally {
+                document.getElementById("loading").classList.add("hidden");
+                document.getElementById("analyze-btn").disabled = false;
+            }
+        }
+
+        // ── Display Results ────────────────────────────
+        function displayResults(data) {
+            const intent = data.intent;
+
+            // Set category badge
+            const badge = document.getElementById("category-badge");
+            badge.textContent = intent.category;
+            badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase badge-" + intent.category;
+
+            // Fill in details
+            document.getElementById("result-title").textContent = intent.title;
+            document.getElementById("result-summary").textContent = intent.summary;
+            document.getElementById("result-text").textContent = data.extracted_text;
+
+            // Key detail (hide if null)
+            const detailRow = document.getElementById("key-detail-row");
+            if (intent.key_detail) {
+                document.getElementById("result-detail").textContent = intent.key_detail;
+                detailRow.classList.remove("hidden");
+            } else {
+                detailRow.classList.add("hidden");
+            }
+
+            // Suggested action
+            document.getElementById("result-action").textContent = intent.suggested_action;
+
+            // Show results section
+            document.getElementById("results").classList.remove("hidden");
+        }
+
+        // ── Save Item (placeholder — Phase 6 will connect to DB) ──
+        function saveItem(category) {
+            if (!lastResult) return;
+
+            // For now, just show a toast (database save coming in Phase 6)
+            const toast = document.getElementById("toast");
+            toast.textContent = "✅ Saved as " + category + "!";
+            toast.classList.remove("hidden");
+            setTimeout(() => toast.classList.add("hidden"), 2500);
+        }
+
+        // ── Reset Upload ───────────────────────────────
+        function resetUpload() {
+            selectedFile = null;
+            lastResult = null;
+            fileInput.value = "";
+            document.getElementById("drop-content").classList.remove("hidden");
+            document.getElementById("preview-container").classList.add("hidden");
+            document.getElementById("results").classList.add("hidden");
+            document.getElementById("analyze-btn").disabled = true;
+        }
+    </script>
+</body>
+</html>

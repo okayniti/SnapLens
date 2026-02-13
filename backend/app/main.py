@@ -13,6 +13,8 @@ import shutil
 from datetime import datetime
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 # Import our AI pipeline modules
 from backend.app.ocr import extract_text
@@ -24,6 +26,21 @@ app = FastAPI(
     description="Turn screenshots into actionable tasks, notes, and reminders.",
     version="0.1.0",
 )
+
+# ── CORS Middleware ─────────────────────────────────────
+# Allows the frontend (running on a different port or file://) to call our API.
+# Without this, browsers block cross-origin requests for security.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, restrict to your domain
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ── Serve Frontend Files ────────────────────────────────
+# Mount the frontend folder so FastAPI serves HTML/CSS/JS directly
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
+app.mount("/app", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
 # ── Config ──────────────────────────────────────────────
 # Directory where uploaded screenshots will be saved
