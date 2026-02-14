@@ -5,407 +5,412 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SnapLens — Screenshot Intelligence</title>
     <meta name="description" content="Turn forgotten screenshots into actionable tasks, notes, reminders, and structured memory.">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* ── Reset & Base ──────────────────────────────── */
+        /* ── Reset ─────────────────────────────────────── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --bg-primary: #0a0a1a;
-            --bg-secondary: #12122a;
-            --bg-card: rgba(255, 255, 255, 0.04);
-            --bg-card-hover: rgba(255, 255, 255, 0.07);
-            --border-glass: rgba(255, 255, 255, 0.08);
-            --text-primary: #f0f0f8;
-            --text-secondary: #a0a0c0;
-            --text-muted: #6a6a8a;
-            --neon-cyan: #00f0ff;
-            --neon-magenta: #ff006e;
-            --neon-purple: #b84dff;
-            --neon-blue: #4d79ff;
-            --neon-green: #00ff88;
-            --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.3);
-            --glow-magenta: 0 0 20px rgba(255, 0, 110, 0.3);
+            --bg: #e8e0ef;
+            --card: #ffffff;
+            --card-border: rgba(255,255,255,0.7);
+            --text-dark: #1a1a2e;
+            --text-mid: #444466;
+            --text-light: #8888aa;
+            --accent: #2563eb;
+            --accent-dark: #1d4ed8;
+            --accent-light: #dbeafe;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --radius-pill: 50px;
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.06);
+            --shadow-hover: 0 8px 40px rgba(0,0,0,0.1);
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text-dark);
             min-height: 100vh;
-            color: var(--text-primary);
-            /* Ombre gradient background */
-            background: linear-gradient(160deg,
-                #0a0a1a 0%,
-                #0d1030 20%,
-                #1a0a2e 40%,
-                #0d1030 60%,
-                #0a1628 80%,
-                #0a0a1a 100%
-            );
-            background-attachment: fixed;
             overflow-x: hidden;
         }
 
-        /* Animated background orbs */
-        body::before, body::after {
-            content: '';
+        /* ── Flowing Abstract Background ───────────────── */
+        .bg-wrapper {
             position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.15;
+            inset: 0;
             z-index: 0;
+            overflow: hidden;
             pointer-events: none;
         }
-        body::before {
-            width: 500px;
-            height: 500px;
-            background: var(--neon-purple);
-            top: -100px;
-            right: -100px;
-            animation: floatOrb 15s ease-in-out infinite alternate;
+        .bg-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
         }
-        body::after {
-            width: 400px;
-            height: 400px;
-            background: var(--neon-cyan);
-            bottom: -50px;
-            left: -50px;
-            animation: floatOrb 12s ease-in-out infinite alternate-reverse;
+        .bg-blob-1 {
+            width: 600px; height: 600px;
+            background: linear-gradient(135deg, #a5c8ff, #c4b5fd);
+            top: -150px; right: -100px;
+            animation: drift1 20s ease-in-out infinite alternate;
         }
-
-        @keyframes floatOrb {
-            0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(30px, -30px) scale(1.1); }
-            100% { transform: translate(-20px, 20px) scale(0.95); }
+        .bg-blob-2 {
+            width: 500px; height: 500px;
+            background: linear-gradient(135deg, #99f6e4, #a5c8ff);
+            top: 40%; left: -150px;
+            animation: drift2 18s ease-in-out infinite alternate;
         }
-
-        /* ── Animations ────────────────────────────────── */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        .bg-blob-3 {
+            width: 450px; height: 450px;
+            background: linear-gradient(135deg, #c4b5fd, #fbc2eb);
+            bottom: -100px; right: 20%;
+            animation: drift3 22s ease-in-out infinite alternate;
         }
-        @keyframes shimmer {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
+        @keyframes drift1 {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-40px, 60px) rotate(10deg); }
         }
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
-            50% { box-shadow: 0 0 30px rgba(0, 240, 255, 0.4); }
+        @keyframes drift2 {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(50px, -40px) rotate(-8deg); }
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        /* ── Glassmorphism Card ─────────────────────────── */
-        .glass-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border-glass);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-        .glass-card:hover {
-            background: var(--bg-card-hover);
-            border-color: rgba(255, 255, 255, 0.12);
+        @keyframes drift3 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-30px, -50px); }
         }
 
         /* ── Header ────────────────────────────────────── */
         header {
-            position: relative;
-            z-index: 10;
-            background: rgba(10, 10, 26, 0.7);
+            position: sticky;
+            top: 0;
+            z-index: 50;
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-glass);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(232, 224, 239, 0.7);
+            border-bottom: 1px solid rgba(255,255,255,0.4);
         }
         .header-inner {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 16px 24px;
+            padding: 14px 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
-        .logo-group {
+        .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            text-decoration: none;
         }
         .logo-icon {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
-            border-radius: 12px;
-            font-size: 20px;
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            border-radius: 10px;
+            font-size: 18px;
+            color: #fff;
         }
-        .logo-text h1 {
-            font-size: 1.2rem;
+        .logo-text {
+            font-size: 1.15rem;
             font-weight: 800;
-            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-dark);
             letter-spacing: -0.5px;
         }
-        .logo-text p {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            letter-spacing: 1px;
-            text-transform: uppercase;
+        .logo-text span { color: var(--accent); }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .nav-link {
-            color: var(--text-secondary);
-            text-decoration: none;
+            padding: 8px 18px;
             font-size: 0.85rem;
             font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 10px;
-            border: 1px solid transparent;
+            color: var(--text-mid);
+            text-decoration: none;
+            border-radius: var(--radius-pill);
             transition: all 0.2s;
         }
-        .nav-link:hover {
-            color: var(--neon-cyan);
-            border-color: rgba(0, 240, 255, 0.2);
-            background: rgba(0, 240, 255, 0.05);
+        .nav-link:hover { background: rgba(0,0,0,0.05); color: var(--text-dark); }
+        .nav-btn {
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #fff;
+            background: var(--text-dark);
+            border: none;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
         }
+        .nav-btn:hover { background: #2a2a4e; transform: translateY(-1px); }
 
         /* ── Main ──────────────────────────────────────── */
         main {
             position: relative;
             z-index: 1;
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 48px 24px 80px;
-        }
-        .section-title {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-        .section-title h2 {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-            background: linear-gradient(90deg, #fff 30%, var(--neon-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .section-title p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
+            padding: 0 28px;
         }
 
-        /* ── Drop Zone ─────────────────────────────────── */
-        .drop-zone {
-            border: 2px dashed rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 64px 32px;
+        /* ── Hero Section ──────────────────────────────── */
+        .hero {
+            margin-top: 40px;
+            background: var(--card);
+            border-radius: 28px;
+            padding: 60px 48px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--card-border);
             text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: var(--bg-card);
             position: relative;
             overflow: hidden;
         }
-        .drop-zone::before {
+        /* Decorative wave inside hero */
+        .hero::before {
             content: '';
             position: absolute;
-            inset: 0;
-            border-radius: 24px;
-            padding: 2px;
-            background: linear-gradient(135deg, transparent 30%, var(--neon-cyan) 50%, transparent 70%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.3s;
+            width: 120%;
+            height: 300px;
+            bottom: -60px;
+            left: -10%;
+            background: linear-gradient(135deg,
+                rgba(165, 200, 255, 0.25),
+                rgba(99, 246, 228, 0.15),
+                rgba(196, 181, 253, 0.2)
+            );
+            border-radius: 50%;
+            filter: blur(30px);
+            pointer-events: none;
         }
-        .drop-zone:hover::before, .drop-zone.drag-over::before {
-            opacity: 1;
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1.15;
+            letter-spacing: -1.5px;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            position: relative;
         }
-        .drop-zone:hover, .drop-zone.drag-over {
-            border-color: transparent;
-            background: rgba(0, 240, 255, 0.03);
+        .hero h1 .accent { color: var(--accent); }
+        .hero p {
+            font-size: 1.05rem;
+            color: var(--text-mid);
+            max-width: 500px;
+            margin: 0 auto 28px;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        /* ── Upload Area ───────────────────────────────── */
+        .upload-area {
+            margin-top: 32px;
+        }
+        .drop-zone {
+            border: 2px dashed rgba(37, 99, 235, 0.25);
+            border-radius: var(--radius-lg);
+            padding: 48px 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(37, 99, 235, 0.03);
+            position: relative;
+        }
+        .drop-zone:hover {
+            border-color: var(--accent);
+            background: rgba(37, 99, 235, 0.06);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(37, 99, 235, 0.1);
+        }
+        .drop-zone.drag-over {
+            border-color: var(--accent);
+            background: rgba(37, 99, 235, 0.08);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
         }
         .drop-icon {
-            font-size: 3.5rem;
-            margin-bottom: 16px;
+            font-size: 3rem;
             display: block;
+            margin-bottom: 12px;
         }
         .drop-text {
-            color: var(--text-primary);
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            color: var(--text-dark);
         }
         .drop-hint {
-            color: var(--text-muted);
+            color: var(--text-light);
             font-size: 0.82rem;
             margin-top: 6px;
         }
         .preview-img {
-            max-height: 260px;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            max-height: 220px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-card);
         }
         .file-name {
-            color: var(--text-muted);
+            color: var(--text-light);
             font-size: 0.82rem;
-            margin-top: 12px;
+            margin-top: 10px;
         }
 
-        /* ── Analyze Button ────────────────────────────── */
-        .btn-analyze {
+        /* ── CTA Button ────────────────────────────────── */
+        .btn-cta {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            margin-top: 28px;
-            padding: 14px 36px;
-            font-size: 1.05rem;
+            margin-top: 24px;
+            padding: 14px 32px;
+            font-size: 1rem;
             font-weight: 700;
             font-family: inherit;
             color: #fff;
+            background: var(--accent);
             border: none;
-            border-radius: 14px;
+            border-radius: var(--radius-pill);
             cursor: pointer;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue), var(--neon-purple));
-            background-size: 200% auto;
-            box-shadow: 0 4px 20px rgba(0, 240, 255, 0.25);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
             transition: all 0.3s ease;
         }
-        .btn-analyze:hover:not(:disabled) {
-            background-position: right center;
-            box-shadow: 0 6px 30px rgba(0, 240, 255, 0.4);
+        .btn-cta:hover:not(:disabled) {
+            background: var(--accent-dark);
+            box-shadow: 0 6px 24px rgba(37, 99, 235, 0.4);
             transform: translateY(-2px);
         }
-        .btn-analyze:disabled {
-            opacity: 0.3;
+        .btn-cta:disabled {
+            opacity: 0.35;
             cursor: not-allowed;
             box-shadow: none;
         }
+        .btn-cta .arrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px; height: 22px;
+            background: rgba(255,255,255,0.25);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+        }
+        .btn-cta:hover .arrow { transform: translate(2px, -2px); }
 
         /* ── Loading ───────────────────────────────────── */
-        .loading-container { text-align: center; padding: 48px 0; }
+        .loading { text-align: center; padding: 48px 0; }
         .spinner {
-            width: 44px;
-            height: 44px;
-            border: 3px solid rgba(0, 240, 255, 0.15);
-            border-top-color: var(--neon-cyan);
+            width: 40px; height: 40px;
+            border: 3px solid var(--accent-light);
+            border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin: 0 auto 16px;
+            margin: 0 auto 14px;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading p { color: var(--text-light); font-size: 0.9rem; }
 
-        /* ── Results ───────────────────────────────────── */
-        .results-section { margin-top: 40px; }
-
-        .intent-card {
+        /* ── Bento Grid Results ─────────────────────────── */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 32px;
+        }
+        .bento-card {
+            background: var(--card);
+            border-radius: var(--radius-lg);
             padding: 28px;
-            margin-bottom: 20px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--card-border);
+            transition: all 0.3s ease;
         }
-        .intent-header {
+        .bento-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-3px);
+        }
+        .bento-card.full { grid-column: 1 / -1; }
+
+        .bento-label {
+            font-size: 0.68rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .bento-value {
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .bento-big {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: var(--accent);
+            line-height: 1.1;
+        }
+
+        /* ── Category Badges ───────────────────────────── */
+        .badge {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: var(--radius-pill);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .badge-task { background: #fef3c7; color: #b45309; }
+        .badge-reminder { background: #d1fae5; color: #065f46; }
+        .badge-note { background: #dbeafe; color: #1e40af; }
+        .badge-expense { background: #fce7f3; color: #9d174d; }
+        .badge-link { background: #ede9fe; color: #5b21b6; }
+
+        /* AI Analysis Header */
+        .analysis-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 20px;
         }
-        .intent-header h3 {
+        .analysis-header h3 {
             font-size: 1.1rem;
             font-weight: 700;
         }
 
-        /* Category Badges with neon glow */
-        .badge {
-            padding: 5px 14px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .badge-task {
-            background: rgba(255, 200, 50, 0.12);
-            color: #ffc832;
-            border: 1px solid rgba(255, 200, 50, 0.2);
-            box-shadow: 0 0 12px rgba(255, 200, 50, 0.15);
-        }
-        .badge-reminder {
-            background: rgba(0, 255, 136, 0.1);
-            color: var(--neon-green);
-            border: 1px solid rgba(0, 255, 136, 0.2);
-            box-shadow: 0 0 12px rgba(0, 255, 136, 0.15);
-        }
-        .badge-note {
-            background: rgba(0, 240, 255, 0.1);
-            color: var(--neon-cyan);
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            box-shadow: 0 0 12px rgba(0, 240, 255, 0.15);
-        }
-        .badge-expense {
-            background: rgba(255, 0, 110, 0.1);
-            color: var(--neon-magenta);
-            border: 1px solid rgba(255, 0, 110, 0.2);
-            box-shadow: 0 0 12px rgba(255, 0, 110, 0.15);
-        }
-        .badge-link {
-            background: rgba(184, 77, 255, 0.1);
-            color: var(--neon-purple);
-            border: 1px solid rgba(184, 77, 255, 0.2);
-            box-shadow: 0 0 12px rgba(184, 77, 255, 0.15);
-        }
-
-        .detail-group { margin-bottom: 14px; }
-        .detail-label {
-            font-size: 0.68rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 4px;
-        }
-        .detail-value {
-            color: var(--text-primary);
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-        .detail-highlight {
-            color: var(--neon-cyan);
-            font-weight: 700;
-        }
-
-        /* Suggested Action Box */
+        /* Suggested Action */
         .action-box {
-            margin-top: 18px;
+            margin-top: 16px;
             padding: 16px 20px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, rgba(0, 240, 255, 0.06), rgba(184, 77, 255, 0.06));
-            border: 1px solid rgba(0, 240, 255, 0.1);
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(124,58,237,0.06));
+            border: 1px solid rgba(37,99,235,0.1);
         }
-        .action-box .detail-label { color: var(--neon-cyan); }
-        .action-box .detail-value { color: #d0d0f0; }
+        .action-box .bento-label { color: var(--accent); }
 
         /* Extracted Text */
-        .text-card { padding: 24px; margin-bottom: 24px; }
-        .text-card summary {
-            font-weight: 700;
-            font-size: 1rem;
+        .text-toggle {
             cursor: pointer;
-            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-dark);
         }
-        .text-card summary:hover { color: var(--neon-cyan); }
+        .text-toggle:hover { color: var(--accent); }
         .extracted-text {
-            margin-top: 16px;
-            padding: 16px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
+            margin-top: 14px;
+            padding: 14px;
+            background: #f8f7fc;
+            border-radius: var(--radius-sm);
             font-size: 0.82rem;
-            color: var(--text-secondary);
+            color: var(--text-mid);
             white-space: pre-wrap;
             overflow: auto;
-            max-height: 200px;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            max-height: 180px;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            border: 1px solid rgba(0,0,0,0.04);
         }
 
         /* ── Action Buttons ────────────────────────────── */
@@ -414,67 +419,33 @@
             flex-wrap: wrap;
             gap: 10px;
             justify-content: center;
+            margin-top: 24px;
         }
         .btn-action {
-            padding: 10px 20px;
-            border-radius: 12px;
+            padding: 10px 22px;
+            border-radius: var(--radius-pill);
             font-size: 0.85rem;
             font-weight: 600;
             font-family: inherit;
             cursor: pointer;
             transition: all 0.25s ease;
-            border: 1px solid;
+            border: 1.5px solid;
+            background: #fff;
         }
-        .btn-task {
-            background: rgba(255, 200, 50, 0.08);
-            color: #ffc832;
-            border-color: rgba(255, 200, 50, 0.2);
-        }
-        .btn-task:hover {
-            background: rgba(255, 200, 50, 0.15);
-            box-shadow: 0 0 18px rgba(255, 200, 50, 0.2);
+        .btn-action:hover {
             transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
         }
-        .btn-note {
-            background: rgba(0, 240, 255, 0.08);
-            color: var(--neon-cyan);
-            border-color: rgba(0, 240, 255, 0.2);
-        }
-        .btn-note:hover {
-            background: rgba(0, 240, 255, 0.15);
-            box-shadow: 0 0 18px rgba(0, 240, 255, 0.2);
-            transform: translateY(-2px);
-        }
-        .btn-reminder {
-            background: rgba(0, 255, 136, 0.08);
-            color: var(--neon-green);
-            border-color: rgba(0, 255, 136, 0.2);
-        }
-        .btn-reminder:hover {
-            background: rgba(0, 255, 136, 0.15);
-            box-shadow: 0 0 18px rgba(0, 255, 136, 0.2);
-            transform: translateY(-2px);
-        }
-        .btn-expense {
-            background: rgba(255, 0, 110, 0.08);
-            color: var(--neon-magenta);
-            border-color: rgba(255, 0, 110, 0.2);
-        }
-        .btn-expense:hover {
-            background: rgba(255, 0, 110, 0.15);
-            box-shadow: 0 0 18px rgba(255, 0, 110, 0.2);
-            transform: translateY(-2px);
-        }
-        .btn-ignore {
-            background: rgba(255, 255, 255, 0.03);
-            color: var(--text-muted);
-            border-color: rgba(255, 255, 255, 0.08);
-        }
-        .btn-ignore:hover {
-            background: rgba(255, 255, 255, 0.07);
-            color: var(--text-secondary);
-            transform: translateY(-2px);
-        }
+        .btn-task { color: #b45309; border-color: #fbbf24; }
+        .btn-task:hover { background: #fffbeb; }
+        .btn-note { color: #1e40af; border-color: #60a5fa; }
+        .btn-note:hover { background: #eff6ff; }
+        .btn-reminder { color: #065f46; border-color: #34d399; }
+        .btn-reminder:hover { background: #ecfdf5; }
+        .btn-expense { color: #9d174d; border-color: #f472b6; }
+        .btn-expense:hover { background: #fdf2f8; }
+        .btn-ignore { color: var(--text-light); border-color: #e5e7eb; }
+        .btn-ignore:hover { background: #f9fafb; color: var(--text-mid); }
 
         /* ── Toast ─────────────────────────────────────── */
         .toast {
@@ -483,123 +454,140 @@
             left: 50%;
             transform: translateX(-50%);
             padding: 12px 28px;
-            background: rgba(0, 240, 255, 0.12);
-            border: 1px solid rgba(0, 240, 255, 0.3);
-            backdrop-filter: blur(16px);
-            border-radius: 14px;
-            color: var(--neon-cyan);
+            background: var(--text-dark);
+            border-radius: var(--radius-pill);
+            color: #fff;
             font-weight: 600;
             font-size: 0.88rem;
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
             z-index: 100;
+            animation: fadeInUp 0.4s ease;
         }
+
+        /* ── Animations ────────────────────────────────── */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        .fade-in-up { animation: fadeInUp 0.5s ease; }
 
         /* ── Utilities ─────────────────────────────────── */
         .hidden { display: none !important; }
-        .text-center { text-align: center; }
-        .mt-6 { margin-top: 24px; }
+
+        /* ── Footer ────────────────────────────────────── */
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 40px 28px 32px;
+            color: var(--text-light);
+            font-size: 0.78rem;
+        }
 
         /* ── Responsive ────────────────────────────────── */
         @media (max-width: 640px) {
-            main { padding: 32px 16px 60px; }
-            .section-title h2 { font-size: 1.5rem; }
-            .drop-zone { padding: 40px 20px; }
-            .intent-card { padding: 20px; }
+            .hero { padding: 40px 24px; border-radius: 20px; }
+            .hero h1 { font-size: 2rem; }
+            .bento-grid { grid-template-columns: 1fr; }
+            .header-inner { padding: 12px 16px; }
+            .nav-links .nav-link { display: none; }
+            main { padding: 0 16px; }
             .action-buttons { gap: 8px; }
-            .btn-action { padding: 9px 14px; font-size: 0.8rem; }
+            .btn-action { padding: 9px 16px; font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
 
+    <!-- Background Blobs -->
+    <div class="bg-wrapper">
+        <div class="bg-blob bg-blob-1"></div>
+        <div class="bg-blob bg-blob-2"></div>
+        <div class="bg-blob bg-blob-3"></div>
+    </div>
+
     <!-- Header -->
     <header>
         <div class="header-inner">
-            <div class="logo-group">
+            <a href="/app" class="logo">
                 <div class="logo-icon">🧠</div>
-                <div class="logo-text">
-                    <h1>SnapLens</h1>
-                    <p>Screenshot Intelligence</p>
-                </div>
+                <div class="logo-text">Snap<span>Lens</span></div>
+            </a>
+            <div class="nav-links">
+                <a href="/app" class="nav-link">How it works</a>
+                <a href="/dashboard.html" class="nav-link">Dashboard</a>
+                <a href="/docs" class="nav-btn">API Docs ↗</a>
             </div>
-            <a href="/dashboard.html" class="nav-link">📋 Dashboard</a>
         </div>
     </header>
 
     <!-- Main Content -->
     <main>
 
-        <!-- Upload Section -->
-        <section id="upload-section">
-            <div class="section-title">
-                <h2>Upload a Screenshot</h2>
-                <p>Drop an image or click below. SnapLens will extract text and understand the intent.</p>
-            </div>
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Your <span class="accent">AI partner</span><br>for screenshot intelligence</h1>
+            <p>Drop a screenshot. SnapLens reads it, understands intent, and suggests what to do next.</p>
 
-            <!-- Drop Zone -->
-            <div id="drop-zone" class="drop-zone" onclick="document.getElementById('file-input').click()">
-                <div id="drop-content">
-                    <span class="drop-icon">📸</span>
-                    <p class="drop-text">Drag & drop your screenshot here</p>
-                    <p class="drop-hint">or click to browse • PNG, JPG, WebP • Max 10 MB</p>
+            <!-- Upload Area -->
+            <div class="upload-area">
+                <div id="drop-zone" class="drop-zone" onclick="document.getElementById('file-input').click()">
+                    <div id="drop-content">
+                        <span class="drop-icon">📸</span>
+                        <p class="drop-text">Drag & drop your screenshot here</p>
+                        <p class="drop-hint">or click to browse • PNG, JPG, WebP • Max 10 MB</p>
+                    </div>
+                    <div id="preview-container" class="hidden">
+                        <img id="image-preview" class="preview-img" alt="Preview">
+                        <p id="file-name" class="file-name"></p>
+                    </div>
                 </div>
-                <div id="preview-container" class="hidden">
-                    <img id="image-preview" class="preview-img" alt="Preview">
-                    <p id="file-name" class="file-name"></p>
-                </div>
-            </div>
-
-            <input type="file" id="file-input" accept="image/*" class="hidden">
-
-            <!-- Analyze Button -->
-            <div class="text-center mt-6">
-                <button id="analyze-btn" class="btn-analyze" onclick="analyzeScreenshot()" disabled>
-                    🔍 Analyze Screenshot
+                <input type="file" id="file-input" accept="image/*" class="hidden">
+                <button id="analyze-btn" class="btn-cta" onclick="analyzeScreenshot()" disabled>
+                    Get Started <span class="arrow">↗</span>
                 </button>
             </div>
         </section>
 
-        <!-- Loading Spinner -->
-        <div id="loading" class="loading-container hidden">
+        <!-- Loading -->
+        <div id="loading" class="loading hidden">
             <div class="spinner"></div>
-            <p style="color: var(--text-secondary);">Analyzing your screenshot...</p>
+            <p>Analyzing your screenshot...</p>
         </div>
 
-        <!-- Results Section -->
-        <section id="results" class="results-section hidden fade-in-up">
+        <!-- Results — Bento Grid -->
+        <section id="results" class="hidden fade-in-up">
+            <div class="bento-grid">
 
-            <!-- Intent Card -->
-            <div class="glass-card intent-card">
-                <div class="intent-header">
-                    <h3>🧠 AI Analysis</h3>
-                    <span id="category-badge" class="badge"></span>
-                </div>
-
-                <div>
-                    <div class="detail-group">
-                        <div class="detail-label">Title</div>
-                        <div id="result-title" class="detail-value"></div>
+                <!-- AI Analysis Card (full width) -->
+                <div class="bento-card full">
+                    <div class="analysis-header">
+                        <h3>🧠 AI Analysis</h3>
+                        <span id="category-badge" class="badge"></span>
                     </div>
-                    <div class="detail-group">
-                        <div class="detail-label">Summary</div>
-                        <div id="result-summary" class="detail-value"></div>
-                    </div>
-                    <div class="detail-group" id="key-detail-row">
-                        <div class="detail-label">Key Detail</div>
-                        <div id="result-detail" class="detail-value detail-highlight"></div>
+                    <div class="bento-label">Title</div>
+                    <div id="result-title" class="bento-value" style="font-size:1.1rem; font-weight:700; margin-bottom:14px;"></div>
+                    <div class="bento-label">Summary</div>
+                    <div id="result-summary" class="bento-value" style="margin-bottom:14px;"></div>
+                    <div id="key-detail-row">
+                        <div class="bento-label">Key Detail</div>
+                        <div id="result-detail" class="bento-value" style="color:var(--accent); font-weight:700; margin-bottom:14px;"></div>
                     </div>
                     <div class="action-box">
-                        <div class="detail-label">💡 Suggested Action</div>
-                        <div id="result-action" class="detail-value"></div>
+                        <div class="bento-label">💡 Suggested Action</div>
+                        <div id="result-action" class="bento-value"></div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Extracted Text Card -->
-            <details class="glass-card text-card">
-                <summary>📝 Extracted Text</summary>
-                <pre id="result-text" class="extracted-text"></pre>
-            </details>
+                <!-- Extracted Text Card -->
+                <div class="bento-card full">
+                    <details>
+                        <summary class="text-toggle">📝 Extracted Text</summary>
+                        <pre id="result-text" class="extracted-text"></pre>
+                    </details>
+                </div>
+
+            </div>
 
             <!-- Action Buttons -->
             <div class="action-buttons">
@@ -612,9 +600,11 @@
         </section>
 
         <!-- Toast -->
-        <div id="toast" class="toast hidden fade-in-up">✅ Saved successfully!</div>
+        <div id="toast" class="toast hidden">✅ Saved!</div>
 
     </main>
+
+    <footer>Built with 🧠 by SnapLens • AI-powered screenshot intelligence</footer>
 
     <script>
         // ── State ──────────────────────────────────────
@@ -634,11 +624,9 @@
             e.preventDefault();
             dropZone.classList.add("drag-over");
         });
-
         dropZone.addEventListener("dragleave", () => {
             dropZone.classList.remove("drag-over");
         });
-
         dropZone.addEventListener("drop", (e) => {
             e.preventDefault();
             dropZone.classList.remove("drag-over");
@@ -651,7 +639,6 @@
                 alert("Please upload an image file (PNG, JPG, WebP, BMP)");
                 return;
             }
-
             selectedFile = file;
 
             const reader = new FileReader();
@@ -668,7 +655,7 @@
             document.getElementById("results").classList.add("hidden");
         }
 
-        // ── Analyze Screenshot ─────────────────────────
+        // ── Analyze ────────────────────────────────────
         async function analyzeScreenshot() {
             if (!selectedFile) return;
 
@@ -693,7 +680,6 @@
                 const data = await response.json();
                 lastResult = data;
                 displayResults(data);
-
             } catch (error) {
                 alert("Error: " + error.message);
             } finally {
@@ -735,7 +721,7 @@
             setTimeout(() => toast.classList.add("hidden"), 2500);
         }
 
-        // ── Reset Upload ───────────────────────────────
+        // ── Reset ──────────────────────────────────────
         function resetUpload() {
             selectedFile = null;
             lastResult = null;
