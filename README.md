@@ -13,7 +13,7 @@
 
 ## What is SnapLens?
 
-People take screenshots of assignments, payments, notes, and links — but they get buried and forgotten. SnapLens uses AI to:
+People take screenshots of assignments, payments, notes, and links — but they get buried and forgotten. SnapLens is a Vision Language Model (VLM), that uses AI to:
 
 1. **Read** screenshot text (OCR)
 2. **Understand** why you saved it (LLM intent detection)
