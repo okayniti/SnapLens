@@ -3,7 +3,8 @@
 **Turn forgotten screenshots into actionable tasks, notes, reminders, and structured memory.**
 
 > Built with FastAPI + Tesseract OCR + LLM Intent Classification
-> <img width="1919" height="874" alt="image" src="https://github.com/user-attachments/assets/d373b01e-78e7-4d68-bab4-266bdd857ac1" />
+> <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/dc553d6c-272b-4dbd-8eb8-d1b35c61d8aa" />
+
 
 
 ## Status: 🚧 In Development (Phase 1 Complete)
