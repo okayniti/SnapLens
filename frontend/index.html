@@ -36,206 +36,25 @@
             perspective: 1200px;
         }
 
-        /* ── 3D Glass Objects Background ───────────────── */
-        .scene {
+        /* ── Video Background ──────────────────────────── */
+        .video-bg {
             position: fixed;
             inset: 0;
             z-index: 0;
             overflow: hidden;
             pointer-events: none;
-            perspective: 800px;
-            transform-style: preserve-3d;
         }
-
-        /* Ambient glow on the scene */
-        .scene::before {
-            content: '';
-            position: absolute;
-            width: 100%; height: 100%;
-            background: radial-gradient(ellipse at 30% 20%, rgba(96, 165, 250, 0.06) 0%, transparent 60%),
-                        radial-gradient(ellipse at 70% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 60%),
-                        radial-gradient(ellipse at 50% 50%, rgba(45, 212, 191, 0.03) 0%, transparent 50%);
-        }
-
-        .glass-obj {
-            position: absolute;
-            border-radius: 50%;
-            transform-style: preserve-3d;
-            /* Mirror glass material */
-            background: linear-gradient(
-                135deg,
-                rgba(255,255,255,0.25) 0%,
-                rgba(255,255,255,0.08) 25%,
-                rgba(255,255,255,0.03) 50%,
-                rgba(255,255,255,0.10) 75%,
-                rgba(255,255,255,0.20) 100%
-            );
-            backdrop-filter: blur(8px) saturate(1.4);
-            -webkit-backdrop-filter: blur(8px) saturate(1.4);
-            border: 1px solid rgba(255,255,255,0.22);
-            box-shadow:
-                inset 0 -8px 28px rgba(255,255,255,0.10),
-                inset 0 8px 28px rgba(255,255,255,0.14),
-                0 24px 80px rgba(0,0,0,0.5),
-                0 0 40px rgba(255,255,255,0.03);
-            will-change: transform;
-        }
-
-        /* Bright specular / mirror highlight */
-        .glass-obj::before {
-            content: '';
-            position: absolute;
-            width: 55%;
-            height: 40%;
-            top: 8%;
-            left: 14%;
-            background: radial-gradient(ellipse,
-                rgba(255,255,255,0.6) 0%,
-                rgba(255,255,255,0.2) 35%,
-                rgba(255,255,255,0.05) 60%,
-                transparent 80%
-            );
-            border-radius: 50%;
-            transform: rotateZ(-25deg);
-            filter: blur(1px);
-        }
-
-        /* Chromatic refraction shimmer */
-        .glass-obj::after {
-            content: '';
-            position: absolute;
+        .video-bg video {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            background: linear-gradient(
-                160deg,
-                transparent 20%,
-                rgba(150,200,255,0.08) 35%,
-                rgba(255,255,255,0.12) 50%,
-                rgba(200,150,255,0.08) 65%,
-                transparent 80%
-            );
+            object-fit: cover;
         }
-
-        /* Individual glass objects with unique colors, sizes, positions and animations */
-        .glass-1 {
-            width: 280px; height: 280px;
-            top: 8%; right: 12%;
-            background: linear-gradient(135deg,
-                rgba(96,165,250,0.22), rgba(255,255,255,0.08), rgba(96,165,250,0.06), rgba(147,197,253,0.18));
-            border-color: rgba(96,165,250,0.28);
-            box-shadow:
-                inset 0 -10px 30px rgba(96,165,250,0.12),
-                inset 0 10px 24px rgba(255,255,255,0.14),
-                0 30px 100px rgba(96,165,250,0.18),
-                0 0 60px rgba(96,165,250,0.06);
-            animation: float1 8s ease-in-out infinite;
-        }
-        .glass-2 {
-            width: 200px; height: 200px;
-            top: 55%; left: 8%;
-            background: linear-gradient(135deg,
-                rgba(168,85,247,0.22), rgba(255,255,255,0.08), rgba(168,85,247,0.06), rgba(196,145,253,0.18));
-            border-color: rgba(168,85,247,0.28);
-            box-shadow:
-                inset 0 -8px 26px rgba(168,85,247,0.12),
-                inset 0 8px 20px rgba(255,255,255,0.14),
-                0 24px 80px rgba(168,85,247,0.16),
-                0 0 50px rgba(168,85,247,0.06);
-            animation: float2 10s ease-in-out infinite;
-        }
-        .glass-3 {
-            width: 160px; height: 160px;
-            bottom: 15%; right: 25%;
-            background: linear-gradient(135deg,
-                rgba(45,212,191,0.22), rgba(255,255,255,0.08), rgba(45,212,191,0.06), rgba(94,234,212,0.18));
-            border-color: rgba(45,212,191,0.28);
-            box-shadow:
-                inset 0 -8px 24px rgba(45,212,191,0.12),
-                inset 0 8px 18px rgba(255,255,255,0.14),
-                0 20px 60px rgba(45,212,191,0.16),
-                0 0 40px rgba(45,212,191,0.06);
-            animation: float3 7s ease-in-out infinite;
-        }
-        .glass-4 {
-            width: 120px; height: 120px;
-            top: 25%; left: 30%;
-            background: linear-gradient(135deg,
-                rgba(251,146,60,0.20), rgba(255,255,255,0.07), rgba(251,146,60,0.05), rgba(253,186,116,0.15));
-            border-color: rgba(251,146,60,0.25);
-            box-shadow:
-                inset 0 -6px 20px rgba(251,146,60,0.10),
-                inset 0 6px 14px rgba(255,255,255,0.12),
-                0 16px 50px rgba(251,146,60,0.12),
-                0 0 30px rgba(251,146,60,0.05);
-            animation: float4 9s ease-in-out infinite;
-        }
-        .glass-5 {
-            width: 90px; height: 90px;
-            top: 70%; right: 45%;
-            background: linear-gradient(135deg,
-                rgba(244,114,182,0.22), rgba(255,255,255,0.08), rgba(244,114,182,0.06), rgba(249,168,212,0.18));
-            border-color: rgba(244,114,182,0.25);
-            box-shadow:
-                inset 0 -5px 16px rgba(244,114,182,0.10),
-                inset 0 5px 12px rgba(255,255,255,0.12),
-                0 14px 40px rgba(244,114,182,0.14),
-                0 0 24px rgba(244,114,182,0.05);
-            animation: float5 6s ease-in-out infinite;
-        }
-        /* Non-sphere: rounded rectangle glass object */
-        .glass-6 {
-            width: 180px; height: 100px;
-            border-radius: 28px;
-            bottom: 35%; left: 15%;
-            background: linear-gradient(135deg,
-                rgba(129,140,248,0.20), rgba(255,255,255,0.07), rgba(129,140,248,0.05), rgba(165,180,252,0.15));
-            border-color: rgba(129,140,248,0.25);
-            box-shadow:
-                inset 0 -6px 22px rgba(129,140,248,0.10),
-                inset 0 6px 16px rgba(255,255,255,0.12),
-                0 18px 56px rgba(129,140,248,0.14),
-                0 0 36px rgba(129,140,248,0.05);
-            animation: float6 11s ease-in-out infinite;
-        }
-        .glass-6::before { border-radius: 20px; width: 55%; height: 40%; top: 15%; left: 15%; }
-
-        @keyframes float1 {
-            0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) scale(1); }
-            20% { transform: translate3d(60px, -70px, 120px) rotateX(18deg) rotateY(-25deg) scale(1.06); }
-            40% { transform: translate3d(-40px, 30px, 50px) rotateX(-12deg) rotateY(20deg) scale(0.95); }
-            60% { transform: translate3d(45px, 50px, 100px) rotateX(22deg) rotateY(-15deg) scale(1.04); }
-            80% { transform: translate3d(-25px, -40px, 70px) rotateX(-8deg) rotateY(18deg) scale(0.98); }
-        }
-        @keyframes float2 {
-            0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) scale(1); }
-            25% { transform: translate3d(70px, -50px, 90px) rotateX(-20deg) rotateY(28deg) scale(1.05); }
-            50% { transform: translate3d(-50px, 60px, 140px) rotateX(16deg) rotateY(-18deg) scale(0.96); }
-            75% { transform: translate3d(35px, -30px, 60px) rotateX(-10deg) rotateY(22deg) scale(1.03); }
-        }
-        @keyframes float3 {
-            0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) scale(1); }
-            25% { transform: translate3d(-70px, -40px, 100px) rotateX(24deg) rotateY(16deg) scale(1.08); }
-            50% { transform: translate3d(50px, 50px, 40px) rotateX(-14deg) rotateY(-28deg) scale(0.92); }
-            75% { transform: translate3d(-30px, 20px, 80px) rotateX(18deg) rotateY(12deg) scale(1.04); }
-        }
-        @keyframes float4 {
-            0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) scale(1); }
-            20% { transform: translate3d(-40px, 60px, 70px) rotateX(14deg) rotateY(22deg) scale(1.05); }
-            40% { transform: translate3d(55px, -30px, 120px) rotateX(-24deg) rotateY(-14deg) scale(0.94); }
-            60% { transform: translate3d(-25px, -50px, 80px) rotateX(18deg) rotateY(26deg) scale(1.06); }
-            80% { transform: translate3d(35px, 40px, 50px) rotateX(-10deg) rotateY(-18deg) scale(0.97); }
-        }
-        @keyframes float5 {
-            0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) scale(1); }
-            33% { transform: translate3d(80px, -55px, 130px) rotateX(-18deg) rotateY(30deg) scale(1.07); }
-            66% { transform: translate3d(-45px, 40px, 60px) rotateX(14deg) rotateY(-20deg) scale(0.94); }
-        }
-        @keyframes float6 {
-            0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1); }
-            25% { transform: translate3d(45px, -60px, 100px) rotateX(14deg) rotateY(-18deg) rotateZ(10deg) scale(1.05); }
-            50% { transform: translate3d(-55px, 35px, 60px) rotateX(-10deg) rotateY(24deg) rotateZ(-6deg) scale(0.95); }
-            75% { transform: translate3d(30px, 45px, 80px) rotateX(8deg) rotateY(-12deg) rotateZ(8deg) scale(1.03); }
+        /* Dark overlay to keep text readable */
+        .video-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(6, 6, 15, 0.55);
         }
 
         /* ── Header ────────────────────────────────────── */
@@ -688,20 +507,17 @@
             .action-buttons { gap: 8px; }
             .btn-action { padding: 9px 16px; font-size: 0.8rem; }
             .dropdown-panel { display: none !important; }
-            .glass-obj { opacity: 0.5; }
+            .video-bg video { opacity: 0.6; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 3D Glass Objects Background -->
-    <div class="scene">
-        <div class="glass-obj glass-1"></div>
-        <div class="glass-obj glass-2"></div>
-        <div class="glass-obj glass-3"></div>
-        <div class="glass-obj glass-4"></div>
-        <div class="glass-obj glass-5"></div>
-        <div class="glass-obj glass-6"></div>
+    <!-- Video Background -->
+    <div class="video-bg">
+        <video autoplay muted loop playsinline>
+            <source src="/app/131706-751014929_medium.mp4" type="video/mp4">
+        </video>
     </div>
 
     <!-- Header -->
