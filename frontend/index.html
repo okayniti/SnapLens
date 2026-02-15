@@ -600,7 +600,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="/dashboard.html" class="nav-link">Dashboard</a>
+                <a href="/app/dashboard.html" class="nav-link">Dashboard</a>
                 <a href="/docs" class="nav-btn">API Docs ↗</a>
             </div>
         </div>
@@ -764,12 +764,30 @@
             document.getElementById("results").classList.remove("hidden");
         }
 
-        function saveItem(category) {
+        async function saveItem(category) {
             if (!lastResult) return;
-            const toast = document.getElementById("toast");
-            toast.textContent = "✅ Saved as " + category + "!";
-            toast.classList.remove("hidden");
-            setTimeout(() => toast.classList.add("hidden"), 2500);
+            const intent = lastResult.intent;
+            try {
+                const response = await fetch(API_URL + "/items", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        category: category,
+                        title: intent.title,
+                        summary: intent.summary,
+                        key_detail: intent.key_detail,
+                        extracted_text: lastResult.extracted_text,
+                        suggested_action: intent.suggested_action
+                    })
+                });
+                if (!response.ok) throw new Error("Save failed");
+                const toast = document.getElementById("toast");
+                toast.textContent = "✅ Saved as " + category + "!";
+                toast.classList.remove("hidden");
+                setTimeout(() => toast.classList.add("hidden"), 2500);
+            } catch (error) {
+                alert("Error saving: " + error.message);
+            }
         }
 
         function resetUpload() {

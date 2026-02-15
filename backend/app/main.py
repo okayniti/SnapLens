@@ -3,8 +3,11 @@ SnapLens — FastAPI Backend Entry Point
 
 This is the main server file. All API routes start here.
 Current endpoints:
-  GET  /          → Health check
-  POST /upload    → Upload a screenshot for AI analysis
+  GET  /              → Health check
+  POST /upload        → Upload a screenshot for AI analysis
+  POST /items         → Save an analyzed result as a categorized item
+  GET  /items         → List saved items (optional ?category= filter)
+  DELETE /items/{id}  → Delete a saved item
 """
 
 import os
@@ -12,13 +15,16 @@ import uuid
 import shutil
 from datetime import datetime
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from typing import Optional
 
 # Import our AI pipeline modules
 from backend.app.ocr import extract_text
 from backend.app.intent import classify_intent
+from backend.app.database import init_db, get_connection
+from backend.app.models import ItemCreate, ItemResponse
 
 # Create the FastAPI app instance
 app = FastAPI(
@@ -37,8 +43,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Initialize Database on Startup ──────────────────────
+# This runs once when the server starts.
+# Creates the items table if it doesn't exist yet.
+init_db()
+
 # ── Serve Frontend Files ────────────────────────────────
 # Mount the frontend folder so FastAPI serves HTML/CSS/JS directly
+# IMPORTANT: This must be the LAST mount — it catches all paths under /app
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
 app.mount("/app", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
@@ -147,3 +159,90 @@ async def upload_screenshot(file: UploadFile = File(...)):
         "intent": intent_result,
         "message": "Screenshot analyzed successfully!",
     }
+
+
+# ── Items CRUD Endpoints ────────────────────────────────
+# These let the frontend save, list, and delete categorized items.
+# The flow: User uploads screenshot → AI analyzes → User clicks "Save as task"
+# → Frontend calls POST /items with the analysis result.
+
+@app.post("/items", status_code=201)
+def save_item(item: ItemCreate):
+    """
+    Save an analyzed screenshot result as a categorized item.
+
+    The frontend sends this after the user clicks "Save as task/note/etc."
+    It stores the AI analysis in the database for the dashboard to display.
+    """
+    conn = get_connection()
+    cursor = conn.execute(
+        """
+        INSERT INTO items (category, title, summary, key_detail, extracted_text, suggested_action)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (item.category, item.title, item.summary, item.key_detail,
+         item.extracted_text, item.suggested_action)
+    )
+    conn.commit()
+    item_id = cursor.lastrowid
+
+    # Fetch the saved item to return it with id and created_at
+    row = conn.execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
+    conn.close()
+
+    return dict(row)
+
+
+@app.get("/items")
+def list_items(category: Optional[str] = Query(None, description="Filter by category: task, note, reminder, expense, link")):
+    """
+    List all saved items, optionally filtered by category.
+
+    Examples:
+      GET /items           → all items
+      GET /items?category=task  → only tasks
+
+    Returns items sorted by newest first (most recently saved on top).
+    """
+    conn = get_connection()
+
+    if category:
+        rows = conn.execute(
+            "SELECT * FROM items WHERE category = ? ORDER BY created_at DESC",
+            (category,)
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT * FROM items ORDER BY created_at DESC"
+        ).fetchall()
+
+    conn.close()
+    return [{"id": row["id"], "category": row["category"], "title": row["title"],
+             "summary": row["summary"], "key_detail": row["key_detail"],
+             "extracted_text": row["extracted_text"],
+             "suggested_action": row["suggested_action"],
+             "created_at": row["created_at"]} for row in rows]
+
+
+@app.delete("/items/{item_id}")
+def delete_item(item_id: int):
+    """
+    Delete a saved item by its ID.
+
+    Used when the user removes an item from the dashboard.
+    Returns 404 if the item doesn't exist.
+    """
+    conn = get_connection()
+
+    # Check if item exists first
+    row = conn.execute("SELECT id FROM items WHERE id = ?", (item_id,)).fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail=f"Item with id {item_id} not found.")
+
+    conn.execute("DELETE FROM items WHERE id = ?", (item_id,))
+    conn.commit()
+    conn.close()
+
+    return {"status": "deleted", "id": item_id}
+
