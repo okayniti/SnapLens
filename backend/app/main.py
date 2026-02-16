@@ -20,9 +20,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from typing import Optional
 
-# Import our AI pipeline modules
-from backend.app.ocr import extract_text
-from backend.app.intent import classify_intent
+# Import our AI pipeline module
+from backend.app.intent import analyze_screenshot
 from backend.app.database import init_db, get_connection
 from backend.app.models import ItemCreate, ItemResponse
 
@@ -142,21 +141,24 @@ async def upload_screenshot(file: UploadFile = File(...)):
     with open(file_path, "wb") as f:
         f.write(contents)
 
-    # Step 4: Run OCR to extract text from the screenshot
-    extracted_text = extract_text(file_path)
+    # Step 4: Run Gemini Vision analysis on the screenshot
+    # This is the AI brain — it SEES the image directly and understands it
+    # No separate OCR step needed — Gemini reads and classifies in one shot
+    analysis = analyze_screenshot(file_path)
 
-    # Step 5: Run LLM intent classification on the extracted text
-    # This is the AI brain — it understands WHY the screenshot was saved
-    intent_result = classify_intent(extracted_text)
-
-    # Step 6: Return the full AI analysis
-    # The complete pipeline: Image → OCR → Intent → Response
+    # Step 5: Return the full AI analysis
     return {
         "status": "success",
         "filename": unique_name,
         "size_mb": round(file_size_mb, 2),
-        "extracted_text": extracted_text,
-        "intent": intent_result,
+        "extracted_text": analysis.get("extracted_text", ""),
+        "intent": {
+            "category": analysis["category"],
+            "title": analysis["title"],
+            "summary": analysis["summary"],
+            "key_detail": analysis.get("key_detail"),
+            "suggested_action": analysis["suggested_action"],
+        },
         "message": "Screenshot analyzed successfully!",
     }
 

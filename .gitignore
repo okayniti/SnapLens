@@ -10,6 +10,9 @@ __pycache__/
 backend/uploads/*
 !backend/uploads/.gitkeep
 
+# Database (local user data)
+backend/snaplens.db
+
 # Environment variables (API keys go here later)
 .env
 
