@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapLens</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <span class="logo-icon">🧠</span>
+            <span class="logo-text">Snap<span class="accent">Lens</span></span>
+        </div>
+        <a href="http://127.0.0.1:8000/app/dashboard.html" target="_blank" class="dash-link" title="Open Dashboard">📋</a>
+    </div>
+
+    <!-- Capture Section -->
+    <div id="capture-section">
+        <p class="hint">Capture this tab and let AI analyze it</p>
+        <button id="capture-btn" class="btn-capture">
+            📸 Capture Screenshot
+        </button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading-section" class="hidden">
+        <div class="spinner"></div>
+        <p class="loading-text">Analyzing screenshot...</p>
+    </div>
+
+    <!-- Results -->
+    <div id="result-section" class="hidden">
+        <div class="result-card">
+            <div class="result-top">
+                <span id="result-badge" class="badge"></span>
+            </div>
+            <div class="result-title" id="result-title"></div>
+            <div class="result-summary" id="result-summary"></div>
+            <div class="result-detail hidden" id="result-detail-row">
+                <span class="detail-icon">🔑</span>
+                <span id="result-detail"></span>
+            </div>
+            <div class="result-action" id="result-action"></div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn-save btn-task" data-category="task">📌 Task</button>
+            <button class="btn-save btn-note" data-category="note">📝 Note</button>
+            <button class="btn-save btn-reminder" data-category="reminder">⏰ Remind</button>
+            <button class="btn-save btn-expense" data-category="expense">💰 Expense</button>
+        </div>
+
+        <button id="reset-btn" class="btn-reset">↩ Capture another</button>
+    </div>
+
+    <!-- Error -->
+    <div id="error-section" class="hidden">
+        <div class="error-icon">⚠️</div>
+        <p class="error-text" id="error-text"></p>
+        <button class="btn-reset" id="error-reset-btn">Try again</button>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
