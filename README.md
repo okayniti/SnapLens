@@ -4,7 +4,7 @@
 
 > Upload a screenshot. SnapLens reads it, understands why you saved it, and suggests what to do next.
 
-<img width="1919" height="1079" alt="SnapLens Dashboard" src="https://github.com/user-attachments/assets/dc553d6c-272b-4dbd-8eb8-d1b35c61d8aa" />
+![SnapLens Demo](https://github.com/user-attachments/assets/7408c4ba-037f-4200-9be6-9f6c39e0e67d)
 
 ---
 
